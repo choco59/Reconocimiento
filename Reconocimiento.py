@@ -13,7 +13,7 @@ api = Api(app)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 # Definimos el servidor donde se encuentra la bd de todas las imagenes registradas
-Servidor = 'E:/laragon/www/SGA_2020/SGA_BACKEND/public/imagenes/usuarios/'
+Servidor = str('E:/laragon/www/SGA_2020/SGA_BACKEND/public/imagenes/usuarios/')
 
 # Definimos el numero de camara a utilizar para el reconocimiento default=0
 numero_camara = 0
@@ -49,19 +49,21 @@ class Rostro(Resource):
             for usuario in json_body:
                 # Obtenemos solo la foto de usuario
                 foto_usuario = usuario['foto_usuario']
-                # Cargamos la imagen que se obtiene desde el servidor
-                image = face_recognition.load_image_file(Servidor+foto_usuario)
-                # Encoding de la imagen que se cargo desde el servidor
-                face_enconding = face_recognition.face_encodings(image)[0]
-                # Comparacion de rostros
-                Resultado = face_recognition.compare_faces([face_enconding], face_encoding_desconocido)
-                # Verificacion si hay coincidencia con las alguna de las imagenes del servidor
-                if Resultado[0] == True:
-                    # Devolvemos los siguientes campos: codigo_usuario y id_usuario
-                    resultado_deb = {'codigo_usuario': str(usuario['codigo_usuario'])}
-                    break  # terminamos el programa para que no siga buscando coincidencias
-                else:
-                    resultado_deb = {'error': 'Persona no encontrada en db'}
+                if foto_usuario != None:
+                    # Cargamos la imagen que se obtiene desde el servidor
+                    image = face_recognition.load_image_file(str(Servidor+foto_usuario))
+                    # Encoding de la imagen que se cargo desde el servidor
+                    face_enconding = face_recognition.face_encodings(image)[0]
+                    # Comparacion de rostros
+                    Resultado = face_recognition.compare_faces([face_enconding], face_encoding_desconocido)
+                    # Verificacion si hay coincidencia con las alguna de las imagenes del servidor
+                    if Resultado[0] == True:
+                        # Devolvemos los siguientes campos: codigo_usuario y id_usuario
+                        resultado_deb = {'codigo_usuario': str(usuario['codigo_usuario']),
+                                         'foto_usuario': str(usuario['foto_usuario'])}
+                        break  # terminamos el programa para que no siga buscando coincidencias
+                    else:
+                        resultado_deb = {'error': 'Persona no encontrada en db'}
             print('Tiempo de Procesamiento: {}'.format(datetime.now() - start_time))
             return jsonify(resultado_deb)
         # Este es el caso cuando no se reconoce ningun rostro en la imagen
@@ -72,4 +74,4 @@ class Rostro(Resource):
 api.add_resource(Rostro, '/identificar')  # Ruta Principal
 
 if __name__ == '__main__':
-    app.run(port='5004')
+    app.run(port='5004',)
